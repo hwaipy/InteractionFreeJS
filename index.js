@@ -1,21 +1,15 @@
-const msgpack = require("msgpack");
-
-function print(name) {
-  console.log('you enter name is :%s', name);
-};
-module.exports = print;
-
-console.log('1231312312')
+var zmq = require("zeromq")
 
 class IFWorkerCore {
   constructor(endpoint) {
-    //     this.messageIDs = 0
-    //     this.endpoint = endpoint
-    //     this.dealer = new JSMQ.Dealer()
-    //     this.connected = false
+    this.messageIDs = 0
+    this.endpoint = endpoint
+    this.dealer = new zmq.socket('dealer')
+    this.dealer.close()
+    this.connected = false
     //     this.dealer.onMessage = (this._onMessage).bind(this)
-    //     this.waitingList = new Map()
-    //     this.timeout = 10000
+    this.waitingList = new Map()
+    this.timeout = 10000
   }
 
   //   async connect() {
@@ -137,6 +131,9 @@ class IFWorkerCore {
 
 async function IFWorker(endpoint) {
   var core = new IFWorkerCore(endpoint)
-  await core.connect()
-  return core._createProxy('')
+  // await core.connect()
+  // return core._createProxy('')
 }
+module.exports = IFWorker;
+
+IFWorker('tcp://127.0.0.1:224')
