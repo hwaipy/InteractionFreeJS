@@ -1,0 +1,23 @@
+{
+  "name": "interactionfreejs",
+  "version": "0.0.2",
+  "description": "description",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/hwaipy/InteractionFreeJS.git"
+  },
+  "author": "Hwaipy <hwaipy@gmail.com>",
+  "license": "GPL-3.0-or-later",
+  "bugs": {
+    "url": "https://github.com/hwaipy/InteractionFreeJS/issues"
+  },
+  "homepage": "https://github.com/hwaipy/InteractionFreeJS#readme",
+  "dependencies": {
+    "mocha": "^8.1.1",
+    "msgpack": "^1.0.3"
+  }
+}
