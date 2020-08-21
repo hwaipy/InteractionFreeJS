@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/hwaipy/InteractionFreeJS#readme",
   "dependencies": {
+    "msgpack": "^1.0.3",
     "zeromq": "^5.2.0"
   }
 }
