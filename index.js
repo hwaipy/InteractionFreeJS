@@ -10,10 +10,11 @@ class IFWorkerCore {
     this.dealer.on('message', (this._onMessage).bind(this))
     this.waitingList = new Map()
     this.timeout = 10000
+    setTimeout((this._timeoutLoop).bind(this), 0)
+    this.running = true
   }
 
   async request(target, functionName, args, kwargs) {
-    console.log('req')
     let content = {
       Type: "Request",
       Function: functionName,
@@ -35,15 +36,9 @@ class IFWorkerCore {
 
     let waitingList = this.waitingList
     var promise = new Promise(function (resolve, reject) {
-      waitingList.set(messageID, [resolve, reject])
+      waitingList.set(messageID, [new Date().getTime(), resolve, reject])
     })
     this.dealer.send(message)
-    setTimeout(() => {
-      this._onResponse({
-        'ResponseID': messageID,
-        'Error': 'Timeout',
-      })
-    }, this.timeout)
     return promise
   }
 
@@ -55,9 +50,9 @@ class IFWorkerCore {
       var promise = this.waitingList.get(responseID)
       this.waitingList.delete(responseID)
       if (error) {
-        promise[1](error)
+        promise[2](error)
       } else {
-        promise[0](result)
+        promise[1](result)
       }
     }
   }
@@ -94,6 +89,30 @@ class IFWorkerCore {
     }
   }
 
+  async _timeoutLoop() {
+    function clearWaitingList(_this) {
+      _this.waitingList.forEach((value, key) => {
+        let timeElapsed = new Date().getTime() - value[0]
+        if (timeElapsed >= _this.timeout) {
+          _this._onResponse({
+            'ResponseID': key,
+            'Error': 'Timeout',
+          })
+        }
+      })
+    }
+    while (this.running) {
+      await new Promise(r => setTimeout(r, 1000));
+      clearWaitingList(this)
+    }
+    clearWaitingList(this)
+  }
+
+  _close() {
+    this.running = false
+    this.dealer.close()
+  }
+
   _createProxy(path) {
     let __this = this
     function remoteFunction() {
@@ -101,6 +120,7 @@ class IFWorkerCore {
     return new Proxy(remoteFunction, {
       get: function (target, key, receiver) {
         if (key == 'then' && path == '') return undefined
+        if (key == 'close' && path == '') return (__this._close).bind(__this)
         return __this._createProxy(path + '.' + key)
       },
       apply: function (target, thisArg, args) {
@@ -117,14 +137,13 @@ class IFWorkerCore {
 async function IFWorker(endpoint) {
   let core = new IFWorkerCore(endpoint)
   return await core._createProxy('')
-  // core.dealer.close()
 }
 module.exports = IFWorker;
 
-
 async function test() {
-  worker = await IFWorker('tcp://127.0.0.1:2224')
+  worker = await IFWorker('tcp://127.0.0.1:224')
   console.log(await worker.heartbeat())
+  await worker.close()
 }
 
 test()
