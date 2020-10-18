@@ -1,5 +1,5 @@
 let zmq = require("zeromq")
-let msgpack = require("msgpack")
+let msgpack = require("@ygoe/msgpack")
 
 class IFWorkerCore {
   constructor(endpoint, serviceObject, serviceName) {
@@ -24,7 +24,7 @@ class IFWorkerCore {
       Arguments: args,
       KeywordArguments: kwargs
     }
-    let contentBuffer = msgpack.pack(content)
+    let contentBuffer = Buffer.from(msgpack.serialize(content))
     let messageID = "" + (this.messageIDs++);
     let message = ["", "IF1", messageID]
     if (target == "") {
@@ -78,7 +78,7 @@ class IFWorkerCore {
     } catch (e) {
       response['Error'] = e.toString()
     }
-    let responseBuffer = msgpack.pack(response)
+    let responseBuffer = Buffer.from(msgpack.serialize(response))
     let messageID = "" + (this.messageIDs++);
     let message = ["", "IF1", messageID]
     message.push("Direct")
@@ -101,7 +101,7 @@ class IFWorkerCore {
       } else if (frame5Ser != "Msgpack") {
         console.log("Invalid serialization: " + frame5Ser + ".");
       } else {
-        let content = msgpack.unpack(frame6Content)
+        let content = msgpack.deserialize(frame6Content)
         let messageType = content["Type"]
         if (messageType == "Response") {
           this._onResponse(content)
@@ -192,4 +192,4 @@ async function test() {
   await worker.close()
 }
 
-// test()
+test()
